@@ -8,6 +8,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "create-icons": "node scripts/create-icons.js",
+    "install-service": "node scripts/install.js",
+    "uninstall-service": "node scripts/uninstall.js",
     "dist": "electron-builder"
   },
   "dependencies": {
