@@ -14,11 +14,15 @@ if (action === 'install') {
     console.log('CAMmonitor service installed. Starting...');
     svc.start();
   });
-  svc.on('start', () => console.log('CAMmonitor service started.'));
+  svc.on('alreadyInstalled', () => {
+    console.log('CAMmonitor service is already installed.');
+    process.exit(0);
+  });
+  svc.on('start', () => { console.log('CAMmonitor service started.'); process.exit(0); });
   svc.on('error', (e) => console.error('Install error:', e));
   svc.install();
 } else if (action === 'uninstall') {
-  svc.on('uninstall', () => console.log('CAMmonitor service uninstalled.'));
+  svc.on('uninstall', () => { console.log('CAMmonitor service uninstalled.'); process.exit(0); });
   svc.on('error', (e) => console.error('Uninstall error:', e));
   svc.uninstall();
 } else {

@@ -7,9 +7,17 @@ let active = false;
 function remediate(walSizeBefore, onProgress, onComplete) {
   if (active) return;
   active = true;
+  let completed = false;
 
   const socket = net.createConnection(PIPE_PATH);
   let buffer = '';
+
+  function complete(event) {
+    if (completed) return;
+    completed = true;
+    active = false;
+    onComplete(event);
+  }
 
   socket.on('connect', () => {
     socket.write(JSON.stringify({ cmd: 'REMEDIATE', walSizeBefore }) + '\n');
@@ -26,15 +34,13 @@ function remediate(walSizeBefore, onProgress, onComplete) {
       onProgress(event);
       if (event.status === 'done' || event.status === 'error') {
         socket.end();
-        active = false;
-        onComplete(event);
+        complete(event);
       }
     }
   });
 
   socket.on('error', (e) => {
-    active = false;
-    onComplete({
+    complete({
       status: 'error',
       message: `Pipe connection failed: ${e.message}. Is the service installed and running?`,
     });

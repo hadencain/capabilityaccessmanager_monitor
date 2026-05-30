@@ -3,6 +3,8 @@ const { runRemediation } = require('./remediate');
 
 const PIPE_PATH = '\\\\.\\pipe\\CAMmonitor';
 
+let remediating = false;
+
 const server = net.createServer((socket) => {
   let buffer = '';
 
@@ -15,6 +17,10 @@ const server = net.createServer((socket) => {
       let msg;
       try { msg = JSON.parse(line); } catch (_) { continue; }
       if (msg.cmd === 'REMEDIATE') {
+        if (remediating) {
+          send(socket, { status: 'error', message: 'Remediation already in progress' });
+          return;
+        }
         handleRemediation(socket, msg.walSizeBefore || 0);
       }
     }
@@ -28,10 +34,13 @@ function send(socket, obj) {
 }
 
 async function handleRemediation(socket, walSizeBefore) {
+  remediating = true;
   try {
     await runRemediation((progress) => send(socket, progress));
   } catch (e) {
     send(socket, { status: 'error', message: e.message });
+  } finally {
+    remediating = false;
   }
 }
 
