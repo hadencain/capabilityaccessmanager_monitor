@@ -11,9 +11,10 @@ module.exports = {
     getLoginItemSettings: jest.fn(() => ({ openAtLogin: false })),
     whenReady: jest.fn(() => Promise.resolve()),
   },
-  Notification: jest.fn().mockImplementation(() => ({
-    show: jest.fn(),
-  })),
+  Notification: Object.assign(
+    jest.fn().mockImplementation(() => ({ show: jest.fn() })),
+    { isSupported: jest.fn(() => true) }
+  ),
   ipcMain: {
     on: jest.fn(),
     handle: jest.fn(),
