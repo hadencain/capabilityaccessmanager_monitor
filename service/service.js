@@ -1,4 +1,5 @@
 const net = require('net');
+const { exec } = require('child_process');
 const { runRemediation } = require('./remediate');
 
 const PIPE_PATH = '\\\\.\\pipe\\CAMmonitor';
@@ -49,5 +50,19 @@ server.on('error', (e) => {
 });
 
 server.listen(PIPE_PATH, () => {
+  // Node.js creates named pipes with SYSTEM's default DACL (SYSTEM + Admins only).
+  // Explicitly grant Authenticated Users access so the user-level Electron app can connect.
+  exec(
+    'powershell -NonInteractive -Command "' +
+    'try {' +
+    '  $acl = Get-Acl -Path \\\"\\\\\\\\.\\\\pipe\\\\CAMmonitor\\\";' +
+    '  $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(\\\"Authenticated Users\\\",\\\"FullControl\\\",\\\"Allow\\\");' +
+    '  $acl.SetAccessRule($rule);' +
+    '  Set-Acl -Path \\\"\\\\\\\\.\\\\pipe\\\\CAMmonitor\\\" -AclObject $acl' +
+    '} catch {}"',
+    (err) => {
+      if (err) process.stderr.write(`[service] pipe ACL warning: ${err.message}\n`);
+    }
+  );
   process.stdout.write(`[service] listening on ${PIPE_PATH}\n`);
 });
