@@ -96,7 +96,8 @@ app.whenReady().then(() => {
       notifyWarning(bytes);
     }
 
-    if (actions.autoRemediate || checkSchedule(current)) {
+    const scheduleTriggered = checkSchedule(current);
+    if (actions.autoRemediate || scheduleTriggered) {
       triggerRemediation();
     }
   });
