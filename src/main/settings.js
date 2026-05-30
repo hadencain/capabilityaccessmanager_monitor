@@ -23,15 +23,20 @@ function load() {
   if (fs.existsSync(p)) {
     try { stored = JSON.parse(fs.readFileSync(p, 'utf8')); } catch (_) {}
   }
-  _cache = Object.assign({}, DEFAULTS, stored);
+  _cache = structuredClone(Object.assign({}, DEFAULTS, stored));
   return _cache;
 }
 
 function save(s) {
-  const p = getSettingsPath();
-  fs.mkdirSync(path.dirname(p), { recursive: true });
-  fs.writeFileSync(p, JSON.stringify(s, null, 2));
-  _cache = s;
+  try {
+    const p = getSettingsPath();
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.writeFileSync(p, JSON.stringify(s, null, 2));
+    _cache = s;
+  } catch (e) {
+    process.stderr.write(`[settings] save failed: ${e.message}\n`);
+    throw e;
+  }
 }
 
 function _reset() {
