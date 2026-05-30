@@ -69,7 +69,7 @@ async function runRemediation(onProgress) {
     const msg = 'WAL still locked after 30s — camsvc may need manual intervention';
     onProgress({ status: 'error', message: msg });
     try { execSync('sc start camsvc', { stdio: 'pipe' }); } catch (_) {}
-    return { success: false, walGone: false, serviceRunning: false, walSizeBefore, message: msg };
+    return { success: false, walGone: false, serviceRunning: false, walSizeBefore, walSizeAfter: walSizeBefore, message: msg };
   }
 
   onProgress({ status: 'restarting_service' });
@@ -83,7 +83,7 @@ async function runRemediation(onProgress) {
     walGone: true,
     serviceRunning,
     walSizeBefore,
-    walSizeAfter: fs.existsSync(WAL_PATH) ? fs.statSync(WAL_PATH).size : 0,
+    walSizeAfter: (() => { try { return fs.existsSync(WAL_PATH) ? fs.statSync(WAL_PATH).size : 0; } catch (_) { return 0; } })(),
     message: serviceRunning ? undefined : 'WAL deleted but camsvc failed to restart — manual intervention required',
   };
 
