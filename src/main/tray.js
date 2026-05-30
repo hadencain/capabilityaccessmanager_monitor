@@ -52,4 +52,4 @@ function createTray(onShowWindow, onResetNow, onQuit) {
   return { updateState, destroy };
 }
 
-module.exports = { createTray, formatBytes };
+module.exports = { createTray };
