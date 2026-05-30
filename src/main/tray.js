@@ -20,7 +20,7 @@ function formatBytes(bytes) {
 function iconForSize(bytes) {
   if (bytes > GB) return ICONS.red;
   if (bytes > MB100) return ICONS.yellow;
-  return ICONS.green;
+  return ICONS.green; // includes 0 (not present) — green is correct per spec
 }
 
 function createTray(onShowWindow, onResetNow, onQuit) {
@@ -43,7 +43,12 @@ function createTray(onShowWindow, onResetNow, onQuit) {
 
   function updateState(bytes) {
     const label = formatBytes(bytes);
-    tray.setImage(nativeImage.createFromPath(iconForSize(bytes)));
+    const img = nativeImage.createFromPath(iconForSize(bytes));
+    if (img.isEmpty()) {
+      process.stderr.write(`[tray] icon asset missing: ${iconForSize(bytes)}\n`);
+    } else {
+      tray.setImage(img);
+    }
     tray.setToolTip(`CAMmonitor — WAL: ${label}`);
     updateContextMenu(label);
   }
