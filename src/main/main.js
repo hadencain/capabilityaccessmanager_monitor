@@ -13,6 +13,7 @@ const WAL_POLL_INTERVAL = 60000;
 
 let win = null;
 let tray = null;
+let poller = null;
 let lastBytes = 0;
 let scheduledRemediationDate = null;
 
@@ -70,6 +71,7 @@ function triggerRemediation() {
       if (!success || !result.serviceRunning) {
         notifyError(result.message || 'Remediation failed — check %APPDATA%\\CAMmonitor\\log.csv');
       }
+      if (poller) poller.poll();
     }
   );
 }
@@ -83,7 +85,7 @@ app.whenReady().then(() => {
 
   tray = createTray(showWindow, triggerRemediation, () => app.quit());
 
-  const poller = createPoller(WAL_PATH, WAL_POLL_INTERVAL, (bytes) => {
+  poller = createPoller(WAL_PATH, WAL_POLL_INTERVAL, (bytes) => {
     lastBytes = bytes;
     logger.log(bytes, 'poll');
     tray.updateState(bytes);

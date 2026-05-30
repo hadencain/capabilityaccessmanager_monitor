@@ -27,7 +27,7 @@ function createPoller(walPath, intervalMs, onSize) {
     }
   }
 
-  return { start, stop };
+  return { start, stop, poll: tick };
 }
 
 module.exports = { createPoller };
