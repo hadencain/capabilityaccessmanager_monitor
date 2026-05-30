@@ -18,7 +18,7 @@ beforeEach(() => {
   execSync.mockImplementation((cmd) => {
     if (cmd === 'sc query camsvc') {
       queryCount++;
-      return queryCount <= 2
+      return queryCount <= 3
         ? 'STATE              : 1  STOPPED'
         : 'STATE              : 4  RUNNING';
     }
