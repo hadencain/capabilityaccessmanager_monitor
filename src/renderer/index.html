@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAMmonitor</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="panel">
+    <div class="label">WAL file size</div>
+    <div id="size-display" class="size-display green">—</div>
+    <div id="last-checked" class="last-checked">Waiting for first poll...</div>
+
+    <canvas id="sparkline" width="288" height="48"></canvas>
+
+    <button id="btn-reset" class="btn btn-reset">Reset Now</button>
+    <div id="progress" class="progress"></div>
+
+    <hr>
+
+    <div class="setting-row">
+      <label>Warning threshold (MB)</label>
+      <input id="warn-threshold" type="number" min="1" value="1024">
+    </div>
+    <div class="setting-row">
+      <label>Auto-remediate threshold (GB)</label>
+      <input id="auto-threshold" type="number" min="1" value="10">
+    </div>
+    <div class="setting-row">
+      <label>Auto-remediate on threshold</label>
+      <input id="auto-remediate" type="checkbox">
+    </div>
+    <div class="setting-row">
+      <label>Schedule daily at hour (0–23)</label>
+      <input id="schedule-hour" type="number" min="0" max="23" value="3">
+    </div>
+    <div class="setting-row">
+      <label>Enable scheduled remediation</label>
+      <input id="schedule-enabled" type="checkbox">
+    </div>
+    <div class="setting-row">
+      <label>Launch at startup</label>
+      <input id="launch-startup" type="checkbox">
+    </div>
+    <div class="settings-actions">
+      <button id="btn-save" class="btn btn-save">Save Settings</button>
+      <button id="btn-log"  class="btn btn-log">Open Log</button>
+    </div>
+  </div>
+  <script src="renderer.js"></script>
+</body>
+</html>
