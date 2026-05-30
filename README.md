@@ -4,13 +4,48 @@ Windows system tray app that monitors and remediates the `CapabilityAccessManage
 
 ## The Bug
 
-`camsvc` enters a write loop, growing `C:\ProgramData\Microsoft\Windows\CapabilityAccessManager\CapabilityAccessManager.db-wal` at ~160 GB/day. The fix is to stop the service, delete only the WAL file, and restart — but this requires SYSTEM privileges and a stopped service.
+`camsvc` (Capability Access Manager) enters a write loop, growing `C:\ProgramData\Microsoft\Windows\CapabilityAccessManager\CapabilityAccessManager.db-wal` at ~160 GB/day. Left unchecked it will fill your drive.
+
+The fix is straightforward: stop the service, delete only the WAL file, restart the service. The complication is that this requires SYSTEM-level privileges — the same level Windows itself runs at — because `camsvc` holds an exclusive lock on the file while running.
+
+## Why This Needs a SYSTEM Service
+
+You may notice that setup asks you to install a Windows service that runs as SYSTEM. This is the part that warrants an explanation.
+
+**The monitoring (tray app) requires no special privileges.** Reading a file's size doesn't need elevation. The tray app runs as your normal user account and never touches the service unless you trigger a remediation.
+
+**The remediation requires SYSTEM.** `sc stop camsvc` and the subsequent file delete will fail from a regular admin account because `camsvc` holds a kernel-level file lock. Only a process running at SYSTEM level can release that lock and delete the file. There is no workaround — this is a Windows security boundary.
+
+**What the service actually does — nothing except when called:**
+
+The service sits idle, listening on a local named pipe (`\\.\pipe\CAMmonitor`). When you click "Reset Now" (or auto-remediation triggers), the tray app sends a single command over that pipe. The service then:
+
+1. Runs `sc stop camsvc`
+2. Deletes `CapabilityAccessManager.db-wal` (and only that file)
+3. Runs `sc start camsvc`
+4. Verifies the service is running again
+5. Reports the result back
+
+That is the complete list of things it does. It does not touch the registry, does not make network calls, does not access other files, and does not run on any schedule of its own.
+
+**You can read every line of it.** The full source is in `service/remediate.js` (~80 lines) and `service/service.js` (~40 lines).
 
 ## Setup
 
-1. Run `npm install` then `npm run dist` to produce the installer `.exe`.
-2. Run the installer as Administrator — it registers the CAMmonitor SYSTEM service.
-3. CAMmonitor appears in the system tray: green = healthy, yellow = growing, red = large.
+1. Clone this repo and run `npm install`.
+2. Run `npm run dist` to build the installer.
+3. Run the installer `.exe` as Administrator — Windows will prompt for UAC consent. This registers the SYSTEM service.
+4. CAMmonitor appears in the system tray. Green = healthy, yellow = growing (>100 MB), red = large (>1 GB).
+
+To remove it entirely: `node service/installer.js uninstall` as Administrator, then uninstall the app normally.
+
+## What It Will Never Do
+
+- Delete `CapabilityAccessManager.db` — only the `-wal` file
+- Make any network connection
+- Collect or transmit any data about your system
+- Run remediation without your knowledge (auto-remediation is off by default)
+- Leave `camsvc` stopped — if the service fails to restart, it reports an error and stops
 
 ## Development
 
@@ -40,20 +75,17 @@ Replace placeholder icons in `assets/` with proper 16x16 designs before distribu
 # Run PowerShell as Administrator
 node service/installer.js install
 
-# Verify
+# Verify the service is registered and running
 sc query CAMmonitor
 
-# Uninstall
+# Remove the service
 node service/installer.js uninstall
 ```
 
-## Safety
+## Logging
 
-- CAMmonitor **never deletes** `CapabilityAccessManager.db` — only the `-wal` file.
-- All operations are logged to `%APPDATA%\CAMmonitor\log.csv`.
-- Auto-remediation and scheduled remediation are **off by default** and require explicit opt-in.
-- Remediation is idempotent — safe to run when the WAL does not exist.
+All activity is logged to `%APPDATA%\CAMmonitor\log.csv`. Every poll, every threshold crossing, every remediation attempt — start, result, and any errors. Open it from the tray popup ("Open Log") or navigate there directly.
 
 ## Optional: handle64.exe
 
-Install [Sysinternals handle64](https://learn.microsoft.com/en-us/sysinternals/downloads/handle) and add it to PATH for explicit handle detection. Not required — CAMmonitor uses a retry loop by default.
+Install [Sysinternals handle64](https://learn.microsoft.com/en-us/sysinternals/downloads/handle) and add it to PATH for explicit handle detection. Not required — CAMmonitor uses a timed retry loop by default.
