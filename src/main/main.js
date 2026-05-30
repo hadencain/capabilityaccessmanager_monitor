@@ -65,8 +65,9 @@ function triggerRemediation() {
     (progress) => sendToRenderer('remediation-progress', progress),
     (result) => {
       const walAfter = result.walSizeAfter || 0;
-      logger.log(walAfter, result.success ? 'remediation_done' : 'remediation_error');
-      if (!result.success || !result.serviceRunning) {
+      const success = result.status === 'done';
+      logger.log(walAfter, success ? 'remediation_done' : 'remediation_error');
+      if (!success || !result.serviceRunning) {
         notifyError(result.message || 'Remediation failed — check %APPDATA%\\CAMmonitor\\log.csv');
       }
     }
