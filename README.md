@@ -33,11 +33,18 @@ That is the complete list of things it does. It does not touch the registry, doe
 ## Setup
 
 1. Clone this repo and run `npm install`.
-2. Run `npm run dist` to build the installer.
-3. Run the installer `.exe` as Administrator — Windows will prompt for UAC consent. This registers the SYSTEM service.
+2. Run `npm run dist` to build the installer `.exe`, then run it as Administrator.
+3. Open an **Administrator** terminal in the install directory and run:
+   ```powershell
+   npm run install-service
+   ```
 4. CAMmonitor appears in the system tray. Green = healthy, yellow = growing (>100 MB), red = large (>1 GB).
 
-To remove it entirely: `node service/installer.js uninstall` as Administrator, then uninstall the app normally.
+To remove it entirely, open an Administrator terminal and run:
+```powershell
+npm run uninstall-service
+```
+Then uninstall CAMmonitor from Add/Remove Programs.
 
 ## What It Will Never Do
 
