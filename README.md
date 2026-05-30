@@ -69,18 +69,29 @@ npm run dist
 
 Replace placeholder icons in `assets/` with proper 16x16 designs before distributing.
 
-## Manual Service Install
+## Install / Uninstall
+
+Both scripts must be run from an **Administrator** PowerShell or terminal.
+
+**Install the service (once, after first run):**
 
 ```powershell
-# Run PowerShell as Administrator
-node service/installer.js install
-
-# Verify the service is registered and running
-sc query CAMmonitor
-
-# Remove the service
-node service/installer.js uninstall
+npm run install-service
 ```
+
+**Verify it's running:**
+
+```powershell
+sc query CAMmonitor
+```
+
+**Full uninstall:**
+
+```powershell
+npm run uninstall-service
+```
+
+This removes the Windows service and deletes `%APPDATA%\CAMmonitor\` (your settings and logs). Then remove the app itself via Add/Remove Programs.
 
 ## Logging
 
