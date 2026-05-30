@@ -1,6 +1,11 @@
 const GB = 1073741824;
 const MB = 1048576;
 
+function parseIntMin(str, min) {
+  const n = parseInt(str, 10);
+  return Number.isNaN(n) ? min : Math.max(min, n);
+}
+
 const readings = [];
 let remediating = false;
 
@@ -87,12 +92,12 @@ window.cam.getSettings().then((s) => {
 
 document.getElementById('btn-save').addEventListener('click', () => {
   const s = {
-    warningThresholdBytes:      parseInt(document.getElementById('warn-threshold').value) * MB,
-    autoRemediateThresholdBytes: parseInt(document.getElementById('auto-threshold').value) * GB,
+    warningThresholdBytes:      parseIntMin(document.getElementById('warn-threshold').value, 1) * MB,
+    autoRemediateThresholdBytes: parseIntMin(document.getElementById('auto-threshold').value, 1) * GB,
     autoRemediateEnabled:       document.getElementById('auto-remediate').checked,
     autoRemediateSchedule: {
       enabled: document.getElementById('schedule-enabled').checked,
-      hour:    parseInt(document.getElementById('schedule-hour').value),
+      hour:    Math.min(23, parseIntMin(document.getElementById('schedule-hour').value, 0)),
     },
     launchAtStartup: document.getElementById('launch-startup').checked,
   };
