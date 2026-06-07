@@ -9,3 +9,8 @@ CLAUDE.md
 .superpowers/
 docs/superpowers/
 scratch/
+coverage/
+query
+*.exe
+*.config
+*.xml
