@@ -5,3 +5,7 @@ build/
 *.log
 .claude/
 session_log.md
+CLAUDE.md
+.superpowers/
+docs/superpowers/
+scratch/
