@@ -3,7 +3,6 @@ const path = require('path');
 const os = require('os');
 
 const FAKE_WAL = path.join(os.tmpdir(), 'fake-remediate-wal-' + process.pid);
-process.env.CAMMONITOR_WAL_PATH = FAKE_WAL;
 
 jest.mock('child_process', () => ({ execSync: jest.fn() }));
 
@@ -28,12 +27,11 @@ beforeEach(() => {
 
 afterAll(() => {
   if (fs.existsSync(FAKE_WAL)) fs.unlinkSync(FAKE_WAL);
-  delete process.env.CAMMONITOR_WAL_PATH;
 });
 
 test('returns success with walGone=true when WAL does not exist', async () => {
   const events = [];
-  const result = await runRemediation((e) => events.push(e));
+  const result = await runRemediation((e) => events.push(e), FAKE_WAL);
   expect(result.success).toBe(true);
   expect(result.walGone).toBe(true);
   const statuses = events.map((e) => e.status);
@@ -45,7 +43,7 @@ test('returns success with walGone=true when WAL does not exist', async () => {
 
 test('deletes WAL file when it exists', async () => {
   fs.writeFileSync(FAKE_WAL, 'x'.repeat(100));
-  const result = await runRemediation(() => {});
+  const result = await runRemediation(() => {}, FAKE_WAL);
   expect(result.success).toBe(true);
   expect(result.walGone).toBe(true);
   expect(fs.existsSync(FAKE_WAL)).toBe(false);
@@ -57,13 +55,13 @@ test('emits error status when camsvc does not stop in time', async () => {
     return '';
   });
   const events = [];
-  const result = await runRemediation((e) => events.push(e));
+  const result = await runRemediation((e) => events.push(e), FAKE_WAL);
   expect(result.success).toBe(false);
   expect(events.some((e) => e.status === 'error')).toBe(true);
 }, 20000);
 
 test('reports correct walSizeBefore', async () => {
   fs.writeFileSync(FAKE_WAL, 'x'.repeat(500));
-  const result = await runRemediation(() => {});
+  const result = await runRemediation(() => {}, FAKE_WAL);
   expect(result.walSizeBefore).toBe(500);
 });

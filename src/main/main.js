@@ -1,6 +1,7 @@
 const path = require('path');
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const settings = require('./settings');
+const { DEFAULTS } = settings;
 const logger = require('./logger');
 const { createPoller } = require('./poller');
 const { check: checkThresholds, reset: resetThresholds } = require('./thresholds');
@@ -112,8 +113,18 @@ app.whenReady().then(() => {
   ipcMain.handle('get-settings', () => settings.load());
 
   ipcMain.handle('save-settings', (_, s) => {
-    settings.save(s);
-    app.setLoginItemSettings({ openAtLogin: s.launchAtStartup });
+    const validated = {
+      warningThresholdBytes:       Math.max(1, Number.isFinite(s.warningThresholdBytes) ? s.warningThresholdBytes : DEFAULTS.warningThresholdBytes),
+      autoRemediateThresholdBytes: Math.max(1, Number.isFinite(s.autoRemediateThresholdBytes) ? s.autoRemediateThresholdBytes : DEFAULTS.autoRemediateThresholdBytes),
+      autoRemediateEnabled:        Boolean(s.autoRemediateEnabled),
+      autoRemediateSchedule: {
+        enabled: Boolean(s.autoRemediateSchedule?.enabled),
+        hour:    Math.min(23, Math.max(0, parseInt(s.autoRemediateSchedule?.hour, 10) || 0)),
+      },
+      launchAtStartup: Boolean(s.launchAtStartup),
+    };
+    settings.save(validated);
+    app.setLoginItemSettings({ openAtLogin: validated.launchAtStartup });
   });
 
   ipcMain.on('open-log', () => {

@@ -35,7 +35,7 @@ test('appends rows with correct fields', () => {
   const [ts, bytes, event] = lines[1].split(',');
   expect(new Date(ts).toString()).not.toBe('Invalid Date');
   expect(bytes).toBe('1000');
-  expect(event).toBe('poll');
+  expect(event).toBe('"poll"');
 });
 
 test('does not throw when data directory is missing', () => {

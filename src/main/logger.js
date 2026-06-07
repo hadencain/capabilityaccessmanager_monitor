@@ -13,7 +13,7 @@ function log(bytes, event) {
     const logPath = getLogPath();
     fs.mkdirSync(path.dirname(logPath), { recursive: true });
     const exists = fs.existsSync(logPath);
-    const row = `${new Date().toISOString()},${bytes},${event}\n`;
+    const row = `${new Date().toISOString()},${bytes},"${event}"\n`;
     if (!exists) {
       fs.writeFileSync(logPath, HEADER + '\n' + row);
     } else {

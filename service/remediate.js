@@ -1,8 +1,7 @@
 const fs = require('fs');
 const { execSync } = require('child_process');
 
-const WAL_PATH = process.env.CAMMONITOR_WAL_PATH ||
-  'C:\\ProgramData\\Microsoft\\Windows\\CapabilityAccessManager\\CapabilityAccessManager.db-wal';
+const WAL_PATH = 'C:\\ProgramData\\Microsoft\\Windows\\CapabilityAccessManager\\CapabilityAccessManager.db-wal';
 
 const STOP_TIMEOUT_MS = 15000;
 const DELETE_TIMEOUT_MS = 30000;
@@ -33,10 +32,10 @@ async function waitForState(targetState, timeoutMs) {
   return false;
 }
 
-async function runRemediation(onProgress) {
+async function runRemediation(onProgress, walPath = WAL_PATH) {
   let walSizeBefore = 0;
   try {
-    walSizeBefore = fs.existsSync(WAL_PATH) ? fs.statSync(WAL_PATH).size : 0;
+    walSizeBefore = fs.existsSync(walPath) ? fs.statSync(walPath).size : 0;
   } catch (_) {}
 
   onProgress({ status: 'stopping_service' });
@@ -53,9 +52,9 @@ async function runRemediation(onProgress) {
   const deadline = Date.now() + DELETE_TIMEOUT_MS;
   let walGone = false;
   while (Date.now() < deadline) {
-    if (!fs.existsSync(WAL_PATH)) { walGone = true; break; }
+    if (!fs.existsSync(walPath)) { walGone = true; break; }
     try {
-      fs.unlinkSync(WAL_PATH);
+      fs.unlinkSync(walPath);
       walGone = true;
       break;
     } catch (e) {
@@ -83,7 +82,7 @@ async function runRemediation(onProgress) {
     walGone: true,
     serviceRunning,
     walSizeBefore,
-    walSizeAfter: (() => { try { return fs.existsSync(WAL_PATH) ? fs.statSync(WAL_PATH).size : 0; } catch (_) { return 0; } })(),
+    walSizeAfter: (() => { try { return fs.existsSync(walPath) ? fs.statSync(walPath).size : 0; } catch (_) { return 0; } })(),
     message: serviceRunning ? undefined : 'WAL deleted but camsvc failed to restart — manual intervention required',
   };
 

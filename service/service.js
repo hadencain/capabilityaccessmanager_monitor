@@ -56,7 +56,7 @@ server.listen(PIPE_PATH, () => {
     'powershell -NonInteractive -Command "' +
     'try {' +
     '  $acl = Get-Acl -Path \\\"\\\\\\\\.\\\\pipe\\\\CAMmonitor\\\";' +
-    '  $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(\\\"Authenticated Users\\\",\\\"FullControl\\\",\\\"Allow\\\");' +
+    '  $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(\\\"Authenticated Users\\\",\\\"ReadWrite\\\",\\\"Allow\\\");' +
     '  $acl.SetAccessRule($rule);' +
     '  Set-Acl -Path \\\"\\\\\\\\.\\\\pipe\\\\CAMmonitor\\\" -AclObject $acl' +
     '} catch {}"',
